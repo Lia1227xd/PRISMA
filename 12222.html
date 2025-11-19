@@ -1,0 +1,639 @@
+<!-- PRISMA • Full Experience — Single-file (HTML/CSS/JS)
+     Features added: full menu with sections, animated loader, smooth page transitions,
+     CSS 3D prism component, neon hover effects, interactive sections, accessible markup.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PRISMA • Experiencia Completa</title>
+
+<style>
+  :root{
+    --bg-1:#050612; --bg-2:#071428; --accent1:#7b5cff; --accent2:#2ad1ff; --neon:#9bf3ff;
+    --glass: rgba(255,255,255,0.06);
+    --glass-2: rgba(255,255,255,0.08);
+    --muted: rgba(255,255,255,0.75);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    color:#eef6ff; -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+
+  /* LOADER */
+  #loader{position:fixed;inset:0;background:linear-gradient(135deg,#021028, #040214);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .loader-wrap{display:flex;flex-direction:column;gap:20px;align-items:center}
+  .spinner{width:88px;height:88px;border-radius:50%;background:conic-gradient(var(--accent1),var(--accent2),var(--neon));filter:blur(10px);position:relative}
+  .spinner::after{content:"";position:absolute;inset:10px;border-radius:50%;background:linear-gradient(180deg,#00000088,#00000011)}
+  .loader-text{font-weight:700;letter-spacing:1px;color:var(--muted)}
+
+  /* LAYOUT */
+  .app{display:grid;grid-template-rows:auto 1fr;min-height:100vh;opacity:0;transform:translateY(12px);transition:opacity .6s ease,transform .6s ease;padding:18px}
+  .app.ready{opacity:1;transform:none}
+
+  header{
+    position:fixed;left:18px;right:18px;top:18px;padding:10px 16px;border-radius:14px;background:linear-gradient(180deg,var(--glass),transparent);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;backdrop-filter:blur(8px);z-index:40;border:1px solid rgba(255,255,255,0.04)
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#021220;box-shadow:0 8px 30px rgba(55,30,120,0.25)}
+  .brand h1{font-size:18px;letter-spacing:1px}
+
+  nav{display:flex;gap:12px;align-items:center}
+  nav a{color:var(--muted);text-decoration:none;padding:10px 12px;border-radius:12px;font-weight:600;transition:all .18s ease}
+  nav a:hover{color:white;text-shadow:0 6px 18px rgba(0,210,255,0.08);transform:translateY(-3px)}
+
+  /* Neon hover */
+  nav a.neon:hover{box-shadow:0 4px 24px rgba(155,243,255,0.06), 0 0 20px rgba(45,209,255,0.12);color:var(--neon)}
+
+  /* SIDE ACTIONS */
+  .actions{display:flex;gap:10px;align-items:center}
+  .btn-ghost{padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--muted);cursor:pointer}
+  .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#021220;padding:10px 14px;border-radius:12px;font-weight:700;border:none;cursor:pointer}
+
+  /* MAIN area */
+  main{margin-top:112px;padding:36px;height:calc(100vh - 160px);display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start;overflow:hidden}
+
+  /* SIDEBAR */
+  .sidebar{height:100%;overflow:auto;padding:18px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.03)}
+  .menu-section{margin-bottom:20px}
+  .menu-section h3{font-size:13px;color:var(--muted);margin-bottom:10px}
+  .menu-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;color:var(--muted);cursor:pointer}
+  .menu-item:hover{color:white;background:linear-gradient(90deg,rgba(128,80,255,0.06),rgba(40,210,255,0.03))}
+
+  /* CONTENT PANELS */
+  .content{height:100%;overflow:auto;padding:18px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.03)}
+  .panel{min-height:100%;padding:20px;opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease}
+  .panel.active{opacity:1;transform:none}
+
+  .hero-large{display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:center}
+  .intro{padding:18px}
+  .intro h2{font-size:36px;margin-bottom:12px}
+  .intro p{color:rgba(235,245,255,0.9);line-height:1.6}
+
+  /* Prism 3D */
+  .prism-wrap{perspective:900px;height:360px;display:flex;align-items:center;justify-content:center}
+  .prism{width:200px;height:200px;position:relative;transform-style:preserve-3d;transform:rotateX(-18deg) rotateY(18deg);transition:transform .8s cubic-bezier(.2,.9,.2,1)}
+  .face{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#021220}
+  .face.face1{transform:translateZ(100px);background:linear-gradient(180deg,var(--accent1),var(--accent2))}
+  .face.face2{transform:rotateY(90deg) translateZ(100px);background:linear-gradient(180deg,var(--accent2),#7ee0ff)}
+  .face.face3{transform:rotateY(180deg) translateZ(100px);background:linear-gradient(180deg,#ffd1f6,#ffa4d6)}
+  .face.face4{transform:rotateY(-90deg) translateZ(100px);background:linear-gradient(180deg,#d8b3ff,#9bb9ff)}
+
+  .prism:hover{transform:rotateX(-6deg) rotateY(0deg) scale(1.06)}
+
+/* Cards & features */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+.features-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+.feature {
+  padding: 18px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.feature h4 {
+  margin-bottom: 8px;
+}
+
+.feature p {
+  color: rgba(235,245,255,0.9);
+}
+
+  /* Neon links & hover */
+  .neon-link{display:inline-block;padding:8px 12px;border-radius:12px;border:1px solid rgba(155,243,255,0.08);transition:all .18s}
+  .neon-link:hover{box-shadow:0 10px 40px rgba(45,209,255,0.08),0 0 30px rgba(155,243,255,0.06);transform:translateY(-6px);color:var(--neon)}
+
+  /* Footer */
+  footer{margin-top:28px;padding:14px;text-align:center;color:rgba(255,255,255,0.65)}
+
+  /* Responsive */
+  @media (max-width:980px){main{grid-template-columns:1fr;height:calc(100vh - 220px)} .hero-large{grid-template-columns:1fr;}.prism-wrap{height:220px}.sidebar{display:none}}
+/* Glow borders */
+.card {
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--accent1), var(--accent2), transparent);
+  filter: blur(12px);
+  opacity: 0.22;
+  z-index: -1;
+}
+
+/* Floating button */
+#toTop {
+  position: fixed;
+  bottom: 26px;
+  right: 26px;
+  background: var(--accent2);
+  color: #021220;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: tr
+
+   .features-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    width: 100%;
+  }
+
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    width: 100%;
+  }
+
+  .prism-wrap {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  main {
+    margin-top: 112px;
+    padding: 36px;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .hero-large {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 20px;
+    align-items: center;
+  }
+
+  /* Media Queries */
+  @media (max-width: 980px) {
+    main {
+      grid-template-columns: 1fr;
+      height: auto;
+      padding: 18px;
+    }
+    .hero-large {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .prism-wrap {
+      max-width: 100%;
+      height: 220px;
+    }
+    .sidebar {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+    .feature {
+      padding: 14px;
+    }
+    .intro h2 {
+      font-size: 24px;
+    }
+    nav a {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+  } 
+</style>
+
+</head>
+<body>
+<div id="particles"></div>
+
+<div id="sideMenu">
+  <div class="side-link" data-scroll="#plan">Plan General</div>
+  <div class="side-link" data-scroll="#regidurias">Regidurías</div>
+  <div class="side-link" data-scroll="#cronograma">Cronograma</div>
+  <div class="side-link" data-scroll="#autoridades">Autoridades</div>
+</div>
+
+<button id="toTop">↑</button>
+
+<!-- Loader -->
+<div id="loader" role="status" aria-hidden="false">
+  <div class="loader-wrap">
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="loader-text">Cargando Prisma...</div>
+  </div>
+</div>
+
+<div class="app" id="app" aria-hidden="true">
+  <header>
+    <div class="brand">
+      <div class="logo">PR</div>
+      <div>
+        <h1>PRISMA</h1>
+        <div style="font-size:12px;color:rgba(255,255,255,0.65)">Programa de Renovación • Integración • Mejora</div>
+      </div>
+    </div>
+
+    <nav aria-label="Principal">
+      <a href="#home" class="neon">Inicio</a>
+      <a href="#propuestas" class="neon neon-link">Propuestas</a>
+      <a href="#equipo" class="neon">Equipo</a>
+      <a href="#eventos" class="neon">Eventos</a>
+    </nav>
+
+    <div class="actions">
+      <button class="btn-ghost" id="togglePrisma" title="Activar Prisma">✨ Prisma</button>
+      <button class="btn-primary" id="contactBtn">¡Unirme!</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="sidebar" aria-label="Navegación secundaria">
+      <div class="menu-section">
+        <h3>Atajos</h3>
+        <div class="menu-item" data-target="home">Inicio • Resumen</div>
+        <div class="menu-item" data-target="propuestas">Propuestas • Ideas</div>
+        <div class="menu-item" data-target="equipo">Equipo • Roles</div>
+        <div class="menu-item" data-target="eventos">Eventos • Calendario</div>
+      </div>
+      <div class="menu-section">
+        <h3>Recursos</h3>
+        <div class="menu-item">Guía rápida</div>
+        <div class="menu-item">Contacto de apoyo</div>
+      </div>
+    </aside>
+
+    <section class="content" id="content" tabindex="0">
+
+      <article id="home" class="panel active" aria-labelledby="home-title">
+        <div class="hero-large">
+          <div class="intro">
+            <h2 id="home-title">Bienvenido a PRISMA</h2>
+            <p>Transformamos la experiencia escolar con creatividad, apoyo real y tecnología accesible. Explora las propuestas, conoce al equipo y únete a nuestros eventos.</p>
+            <div style="margin-top:18px;display:flex;gap:12px">
+              <a class="neon-link" href="#propuestas">Ver Propuestas</a>
+              <button class="btn-ghost" id="openExpo">Ver Expo</button>
+            </div>
+          </div>
+
+          <div class="prism-wrap" aria-hidden="true">
+            <div class="prism" id="prism" role="img" aria-label="Prisma rotante">
+              <div class="face face1">PR</div>
+              <div class="face face2">IS</div>
+              <div class="face face3">MA</div>
+              <div class="face face4">++</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:26px" class="grid-cards">
+          <div class="feature">
+            <h4>Interactividad</h4>
+            <p>Desde QR dinámicos hasta pequeños talleres. Todo pensado para que los estudiantes creen y participen.</p>
+          </div>
+          <div class="feature">
+            <h4>Bienestar</h4>
+            <p>Espacios seguros, programas de escucha y actividades de apoyo emocional.</p>
+          </div>
+        </div>
+      </article>
+
+      <article id="propuestas" class="panel" aria-labelledby="prop-title">
+        <h2 id="prop-title">Propuestas Ultra</h2>
+        <div class="features-container">
+          <div class="feature now" style="display: flex; flex-wrap: wrap; margin-bottom: 20px;">
+            <div class="feature" style="flex:1; min-width:240px;">
+            <h4>Aulas Tech</h4>
+            <p>Pizarras inteligentes, kits portátiles y estaciones creativas.</p>
+          </div>
+          <div class="feature" style="flex:1;min-width:240px">
+            <h4>Conexión Estudiantil</h4>
+            <p>Zona chill, clubes y eventos culturales cada mes.</p>
+          </div>
+          <div class="feature" style="flex:1;min-width:240px">
+            <h4>Eco Prisma</h4>
+            <p>Jardines verticales, reciclaje activo y retos verdes.</p>
+          </div>
+          <div class="feature" style="flex:1;min-width:240px">
+            <h4>Soporte</h4>
+            <p>Buzón anónimo, asesorías rápidas y guía estudiantil.</p>
+          </div>
+        </div>
+          <div class="features-container">
+          <div class="feature now" style="display: flex; flex-wrap: wrap; margin-bottom: 20px;">
+            <div class="feature" style="flex:1; min-width:240px;">
+            <h4>_____</h4>
+            <p>:::::::::::::</p>
+          </div>
+          <div class="feature" style="flex:1;min-width:240px">
+            <h4>Conexión Estudiantil</h4>
+            <p>Zona chill, clubes y eventos culturales cada mes.</p>
+          </div>
+          <div class="feature" style="flex:1;min-width:240px">
+            <h4>Eco Prisma</h4>
+            <p>Jardines verticales, reciclaje activo y retos verdes.</p>
+          </div>
+          <div class="feature" style="flex:1;min-width:240px">
+            <h4>Soporte</h4>
+            <p>Buzón anónimo, asesorías rápidas y guía estudiantil.</p>
+          </div>
+        </div>
+      </article>
+
+      <article id="equipo" class="panel" aria-labelledby="team-title">
+        <h2 id="team-title">Nuestro Equipo</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px">
+          <div class="feature"><h4>Alcalde</h4><p>—</p></div>
+          <div class="feature"><h4>Teniente</h4><p>—</p></div>
+          <div class="feature"><h4>Regidores</h4><p>Academia • Cultura • Deportes • Medio Ambiente • Bienestar</p></div>
+        </div>
+        </div>
+      </article>
+
+      <article id="eventos" class="panel" aria-labelledby="ev-title">
+        <h2 id="ev-title">Próximos Eventos</h2>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+          <div class="feature"><h4>Expo PRISMA</h4><p>Feria de proyectos — fecha por confirmar</p></div>
+          <div class="feature"><h4>Día Creativo</h4><p>Talleres artísticos y música</p></div>
+          <div class="feature"><h4>Línea PRISMA – Escúchate</h4><p>Buzón y atención inmediata para estudiantes</p></div>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer style="position:fixed;left:18px;right:18px;bottom:18px;border-radius:12px;padding:10px 18px;background:linear-gradient(180deg,transparent,var(--glass));text-align:center;border:1px solid rgba(255,255,255,0.03)">
+    © PRISMA • Hecho con cariño 💕 💕 💕
+  </footer>
+</div>
+
+<script>
+// Accessibility: allow keyboard navigation to switch sections (1-4)
+document.addEventListener('keydown', (e)=>{
+  if(e.key>='1' && e.key<='4'){
+    const map=['home','propuestas','equipo','eventos'];
+    showPanel(map[Number(e.key)-1]);
+  }
+});
+
+// Simple SPA behavior: handle clicks
+const items = document.querySelectorAll('.menu-item');
+items.forEach(it=>it.addEventListener('click', ()=> showPanel(it.dataset.target)));
+document.querySelectorAll('nav a').forEach(a=> a.addEventListener('click', (ev)=>{ ev.preventDefault(); const id = a.getAttribute('href').substring(1); showPanel(id); }));
+
+function showPanel(id){
+  const panels = document.querySelectorAll('.panel');
+  panels.forEach(p=> p.classList.toggle('active', p.id===id));
+  // for ARIA
+  document.getElementById('content').focus();
+}
+
+// Prism subtle auto-rotation
+const prism = document.getElementById('prism');
+let rotX= -18, rotY=18;
+let mouseDown=false;
+let lastX=0,lastY=0;
+prism.addEventListener('mousedown', (e)=>{mouseDown=true;lastX=e.clientX;lastY=e.clientY;});
+window.addEventListener('mouseup', ()=>mouseDown=false);
+window.addEventListener('mousemove', (e)=>{ if(!mouseDown) return; const dx = (e.clientX-lastX)/6; const dy=(e.clientY-lastY)/6; rotY += dx; rotX += dy; prism.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`; lastX=e.clientX; lastY=e.clientY; });
+
+// Toggle Prisma effect
+const toggle = document.getElementById('togglePrisma');
+toggle.addEventListener('click', ()=>{
+  document.body.classList.toggle('prisma-mode');
+  document.querySelector('.logo').style.transform = document.body.classList.contains('prisma-mode') ? 'scale(1.08) rotate(-6deg)' : 'none';
+});
+
+// Contact button example
+document.getElementById('contactBtn').addEventListener('click', ()=>{
+  alert('Gracias — enviaremos más info y el link para unirte al grupo. ❤️');
+});
+
+// Open Expo quick action
+document.getElementById('openExpo').addEventListener('click', ()=> showPanel('eventos'));
+
+// Loader fade
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    document.getElementById('loader').style.opacity=0;document.getElementById('loader').style.pointerEvents='none';
+    document.getElementById('app').classList.add('ready'); document.getElementById('app').setAttribute('aria-hidden','false');
+    setTimeout(()=>document.getElementById('loader').remove(),600);
+  },800);
+});
+
+// Resize canvas particles (simple subtle effect)
+const canvas = document.createElement('canvas');
+canvas.id='bgcanvas'; canvas.style.position='fixed'; canvas.style.inset=0; canvas.style.zIndex='-2'; canvas.style.opacity=0.08; document.body.appendChild(canvas);
+const c = canvas.getContext('2d'); function fit(){canvas.width=innerWidth;canvas.height=innerHeight;} fit(); window.addEventListener('resize',fit);
+let stars=[]; for(let i=0;i<160;i++){stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.6+0.2})}
+function drawStars(){ c.clearRect(0,0,canvas.width,canvas.height); for(let s of stars){ c.beginPath(); c.fillStyle='rgba(70,160,255,0.9)'; c.arc(s.x,s.y,s.r,0,Math.PI*2); c.fill(); } }
+(function loop(){ drawStars(); requestAnimationFrame(loop); })();
+
+// --- MODO SORPRESA ULTRA ---
+// Efecto: explosión de partículas + brillo + sonido + mensaje emergente premium
+const surpriseBtn = document.createElement('button');
+surpriseBtn.textContent = 'Modo Sorpresa ✨';
+surpriseBtn.className = 'btn-primary';
+surpriseBtn.style.position = 'fixed';
+surpriseBtn.style.bottom = '90px';
+surpriseBtn.style.right = '28px';
+surpriseBtn.style.zIndex = '2000';
+
+document.body.appendChild(surpriseBtn);
+
+surpriseBtn.addEventListener('click',()=>{
+  burstParticles();
+  playChime();
+  megaGlow();
+  showSurpriseMsg();
+});
+
+// partículas
+function burstParticles(){
+  const burstCanvas = document.createElement('canvas');
+  burstCanvas.width = innerWidth;
+  burstCanvas.height = innerHeight;
+  burstCanvas.style.position='fixed';
+  burstCanvas.style.inset=0;
+  burstCanvas.style.pointerEvents='none';
+  burstCanvas.style.zIndex='3000';
+  document.body.appendChild(burstCanvas);
+  const ctx = burstCanvas.getContext('2d');
+
+  let particles=[];
+  for(let i=0;i<180;i++){
+    particles.push({
+      x: innerWidth/2,
+      y: innerHeight/2,
+      vx:(Math.random()*4-2)*Math.random()*6,
+      vy:(Math.random()*4-2)*Math.random()*6,
+      r: Math.random()*4+1,
+      a:1
+    });
+  }
+
+  function animate(){
+    ctx.clearRect(0,0,burstCanvas.width,burstCanvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx;
+      p.y+=p.vy;
+      p.a-=0.015;
+      ctx.fillStyle=`rgba(120,220,255,${p.a})`;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+    });
+    particles = particles.filter(p=>p.a>0);
+    if(particles.length>0) requestAnimationFrame(animate);
+    else burstCanvas.remove();
+  }
+  animate();
+}
+
+// sonido
+function playChime(){
+  const audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_20703e4f9d.mp3');
+  audio.volume = 0.6;
+  audio.play();
+}
+
+// brillo global
+function megaGlow(){
+  document.body.style.filter='brightness(1.35) drop-shadow(0 0 14px #7b5cff)';
+  setTimeout(()=>{document.body.style.filter='none';},900);
+}
+
+// mensaje sorpresaunction showSurpriseMsg(){
+  const box=document.createElement('div');
+  box.textContent='✨ ¡PRISMA ACTIVADO AL MÁXIMO! ✨';
+  box.style.position='fixed';
+  box.style.top='50%';
+  box.style.left='50%';
+  box.style.transform='translate(-50%,-50%) scale(0.8)';
+  box.style.background='linear-gradient(135deg,#7b5cff,#2ad1ff)';
+  box.style.padding='26px 38px';
+  box.style.borderRadius='18px';
+  box.style.fontSize='22px';
+  box.style.fontWeight='800';
+  box.style.boxShadow='0 0 40px rgba(20,200,255,0.35)';
+  box.style.zIndex='5000';
+  box.style.color='#021220';
+  box.style.opacity='0';
+  box.style.transition='all .5s ease';
+  document.body.appendChild(box);
+  setTimeout(()=>{box.style.opacity='1';box.style.transform='translate(-50%,-50%) scale(1)';},20);
+  setTimeout(()=>{box.style.opacity='0';box.style.transform='translate(-50%,-50%) scale(0.8)';},1800);
+  setTimeout(()=>box.remove(),2500);
+/* ---- Botón volver arriba ---- */
+const toTop = document.getElementById("toTop");
+window.addEventListener("scroll", ()=>{
+  if(window.scrollY > 300) toTop.classList.add("show");
+  else toTop.classList.remove("show");
+});
+toTop.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+
+
+/* ---- Menú lateral ---- */
+document.querySelector(".logo").addEventListener("click", ()=>{
+  document.getElementById("sideMenu").classList.toggle("open");
+});
+document.querySelectorAll(".side-link").forEach(link=>{
+  link.addEventListener("click", ()=>{
+    const s = document.querySelector(link.dataset.scroll);
+    s.scrollIntoView({behavior:"smooth"});
+    document.getElementById("sideMenu").classList.remove("open");
+  });
+});
+
+
+/* ---- Toast Notification ---- */
+function toast(msg){
+  const t = document.createElement("div");
+  t.innerText = msg;
+  t.style.position="fixed";
+  t.style.bottom="20px";
+  t.style.left="50%";
+  t.style.transform="translateX(-50%)";
+  t.style.background="rgba(0,0,0,0.7)";
+  t.style.padding="12px 20px";
+  t.style.borderRadius="10px";
+  t.style.color="white";
+  t.style.opacity="0";
+  t.style.transition="opacity .4s, bottom .4s";
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity="1";t.style.bottom="40px";},20);
+  setTimeout(()=>{t.style.opacity="0";t.style.bottom="20px";},2200);
+  setTimeout(()=>{t.remove();},2600);
+}
+
+
+/* ---- Sonido suave al abrir acordeón ---- */
+const audio = new Audio("https://cdn.pixabay.com/audio/2022/03/31/audio_3d4bb2c4a4.mp3");
+document.querySelectorAll(".accordion-head").forEach(h=>{
+  h.addEventListener("click", ()=> audio.play());
+});
+
+
+/* ---- Partículas animadas ---- */
+const particles = document.getElementById("particles");
+for(let i=0;i<40;i++){
+  const p = document.createElement("div");
+  p.style.position="absolute";
+  p.style.width=p.style.height=Math.random()*4+2+"px";
+  p.style.background= "var(--neon)";
+  p.style.borderRadius="50%";
+  p.style.top=Math.random()*100+"%";
+  p.style.left=Math.random()*100+"%";
+  p.style.opacity=".2";
+  p.style.animation=`float ${6+Math.random()*6}s infinite ease-in-out`;
+  particles.appendChild(p);
+}
+const styleAnim = document.createElement("style");
+styleAnim.textContent = `
+@keyframes float {
+  0%{transform:translateY(0) scale(1);}
+  50%{transform:translateY(-30px) scale(1.4);}
+  100%{transform:translateY(0) scale(1);}
+}`;
+document.head.appendChild(styleAnim);
+
+
+/* ---- Notificación al copiar ---- */
+document.getElementById("copyBtn").addEventListener("click",()=>{
+  toast("Copiado al portapapeles ✓");
+});
+
+</script>
+</body>
+</html>
+
